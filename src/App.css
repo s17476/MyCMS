@@ -1,0 +1,44 @@
+.App {
+  height: 150px;
+}
+
+.App-logo {
+  height: 100px;
+  visibility: hidden;
+  margin: 10px;
+}
+
+
+.App-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: left;
+  font-size: calc(10px + 2vmin);
+}
+.App-text{
+  margin-left: 5%;
+}
+
+.App-nav {
+  overflow: hidden;
+  background-color: #333;
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  margin: 0px;
+  padding: 0px;
+  cursor: pointer;
+}
+.App-nav a {
+  float: left;
+  display: block;
+  color: #f2f2f2;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+.App-nav-item:hover {
+  background-color: #ddd;
+  color: black;
+}
+
+
