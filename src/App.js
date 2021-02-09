@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 import {Link} from "react-router-dom";
 import './App.css';
 import firebase from './Firebase';
@@ -30,7 +31,7 @@ class App extends Component{
       pagesRef.get().then((querySnapshot) => {
           querySnapshot.forEach((doc) => {
               console.log(doc.id, " => ", doc.data());
-              items.push(doc.data());
+              items.push([doc.id, doc.data()]);
           })
           this.setState({
               items: items
@@ -52,10 +53,46 @@ class App extends Component{
             <div className="App-nav" id="navbar">
                 {this.state.items.map(item => (
                     <div>
-                        <a className="App-nav-item" to={"/"+item.id}>{item.title}</a>
+                        <a className="App-nav-item" onClick={ async () => {
+
+                            //image CSS
+                            let imgWidth, imgHeight;
+                            await db.collection("pages")
+                                .doc(item[0])
+                                .collection("style")
+                                .doc("image")
+                                .get()
+                                .then((doc) => {
+                                    imgWidth = doc.data().width;
+                                    imgHeight = doc.data().height;
+                                    console.log(imgHeight, imgWidth)
+                                }).catch((error) => {
+                                console.log(error);
+                            });
+
+                            //build
+                            ReactDOM.render(
+                                <div className="App-page" id="Page">
+                                    <h1>{item[1].title}</h1>
+                                    <img
+                                        src={item[1].image}
+                                        id="img"
+                                        alt=""
+                                        style={{
+                                            width: imgWidth,
+                                            height: imgHeight
+                                        }}
+                                    />
+                                </div>
+                                ,document.getElementById("Body"));
+                            console.log("iiiiiiiiiiddddddddddd", item[0]);
+
+
+                        }}>{item[1].title}</a>
                     </div>
                 ))}
             </div>
+            <div className="App-body" id="Body"></div>
         </div>
     );
   }
