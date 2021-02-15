@@ -1,102 +1,447 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import {Link} from "react-router-dom";
 import './App.css';
 import firebase from './Firebase';
 const db = firebase.firestore();
+
 
 class App extends Component{
     constructor(props) {
         super(props);
         this.state = {
-            logo: "",
-            header: "",
-            items: []
+            loaded: false,
+            currentItem: [],
+            items: [],
+            products: []
         };
+        localStorage.setItem("product", "false");
+        localStorage.setItem("item", "main");
     }
 
-  componentDidMount() {
+
+    componentDidUpdate(){
+
+        //open main page onLoad
+
+        if((document.getElementById("main") != null) && (this.state.loaded === false)){
+            document.getElementById("main").click();
+            localStorage.setItem("product", "false");
+            localStorage.setItem("item", "main");
+            this.setState({
+                loaded: true
+            })
+        }
+
+        //show and hide rulles for products menu
+
+        localStorage.setItem("product", "false");
+        document.getElementById("Products")
+            .addEventListener('mouseenter', () => document.getElementById("productNavbar")
+                .style.visibility = "visible");
+
+        window.addEventListener("click", async() => {
+            document.getElementById("productNavbar")
+                .style.visibility = "hidden"
+        });
+
+        document.getElementById("Products", () => {
+            localStorage.setItem("product", "true");
+        });
+    }
+
+
+    //startup setup
+
+    async componentDidMount() {
         var items = [];
-      var headerRef = db.collection("header").doc("myHeader");
-      headerRef.get()
-          .then((doc) => {
-              this.setState({logo: doc.data().headerLogo});
-              document.getElementById("logo").style.visibility = "visible";
-              this.setState({header: doc.data().headerText});
-          })
-          .catch((error) => {
-              console.log(error);
-          });
-      var pagesRef = db.collection("pages");
-      pagesRef.get().then((querySnapshot) => {
-          querySnapshot.forEach((doc) => {
-              console.log(doc.id, " => ", doc.data());
-              items.push([doc.id, doc.data()]);
-          })
-          this.setState({
-              items: items
-          });
-      })
+        var products = [];
 
-  }
+        //load header data and style
 
-  render(){
+        var headerRef = await db.collection("header").doc("myHeader");
+        headerRef.get()
+            .then((doc) => {
+                ReactDOM.render(
+                    <div className="App-head" id="App-head" style={{background: doc.data().backgroundColor}}>
+                        <img src={doc.data().headerLogo} className="App-logo" id="logo" alt="logo"
+                             style = {{
+                                 height: doc.data().logoHeight,
+                                 width: doc.data().logoWidth,
+                                 margin: doc.data().logoMargin
+                             }}
+                        />
+                        <h1 className="App-text" id="App-text"
+                            style={{
+                                fontSize: doc.data().fontSize,
+                                color: doc.data().textColor,
+                                margin: doc.data().textMargin
+                            }}
+                        >{doc.data().headerText}</h1>
+                    </div>,
+                    document.getElementById("App-header")
+                );
+            })
+            .catch((error) => {
+                console.log(error);
+            });
 
+        //load pages
 
-    return (
-        <div className="App">
-          <header className="App-header">
-            <img src={this.state.logo} className="App-logo" id="logo" alt="logo" />
-            <h1 className="App-text">{this.state.header}</h1>
-
-          </header>
-            <div className="App-nav" id="navbar">
-                {this.state.items.map(item => (
-                    <div>
-                        <a className="App-nav-item" onClick={ async () => {
-
-                            //image CSS
-                            let imgWidth, imgHeight;
-                            await db.collection("pages")
-                                .doc(item[0])
-                                .collection("style")
-                                .doc("image")
-                                .get()
-                                .then((doc) => {
-                                    imgWidth = doc.data().width;
-                                    imgHeight = doc.data().height;
-                                    console.log(imgHeight, imgWidth)
-                                }).catch((error) => {
-                                console.log(error);
-                            });
-
-                            //build
-                            ReactDOM.render(
-                                <div className="App-page" id="Page">
-                                    <h1>{item[1].title}</h1>
-                                    <img
-                                        src={item[1].image}
-                                        id="img"
-                                        alt=""
-                                        style={{
-                                            width: imgWidth,
-                                            height: imgHeight
-                                        }}
-                                    />
-                                </div>
-                                ,document.getElementById("Body"));
-                            console.log("iiiiiiiiiiddddddddddd", item[0]);
+        var pagesRef = await db.collection("pages");
+        pagesRef.get().then((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+                items.push([doc.id, doc.data()]);
+            })
+            this.setState({
+                items: items
+            });
+        })
 
 
-                        }}>{item[1].title}</a>
-                    </div>
-                ))}
+        //load products pages from Db
+
+        var productsRef = await db.collection("pages").doc("Products").collection("pages");
+        productsRef.get().then((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+
+                products.push([doc.id, doc.data()]);
+            })
+            this.setState({
+                products: products
+            });
+        });
+
+        //load menu and submenu style
+
+        var menuRef = await db.collection("header").doc("menu");
+        menuRef.get()
+            .then((doc) => {
+                var menu = document.getElementById("navbar");
+                var productMenu = document.getElementById("productNavbar");
+
+                var menuItems = document.getElementsByClassName("App-nav-item");
+
+                var backgroundColor = doc.data().backgroundColor;
+                var color = doc.data().textColor;
+                var margin = doc.data().margin;
+                var fontSize = doc.data().fontSize;
+                var hoverColor = doc.data().hoverColor;
+                var hoverBackgroundColor = doc.data().hoverBackgroundColor;
+
+                menu.style.backgroundColor = backgroundColor;
+                productMenu.style.backgroundColor = backgroundColor;
+
+                Array.from(menuItems).forEach((item) => {
+                    item.style.color = color;
+                    item.style.padding = margin;
+                    item.style.fontSize = fontSize;
+                    document.getElementById(item.id).onmouseleave = () => {
+                        item.style.color = color;
+                        item.style.background = backgroundColor;
+                    };
+                    document.getElementById(item.id).onmouseenter= () => {
+                        item.style.color = hoverColor;
+                        item.style.backgroundColor = hoverBackgroundColor;
+                    };
+                });
+
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    }
+
+    // color format converter rgb(r, g, b) => #ffffff
+
+    rgbToHex(col)
+    {
+        if(col.charAt(0)=='r')
+        {
+            col=col.replace('rgb(','').replace(')','').split(',');
+            var r=parseInt(col[0], 10).toString(16);
+            var g=parseInt(col[1], 10).toString(16);
+            var b=parseInt(col[2], 10).toString(16);
+            r=r.length==1?'0'+r:r; g=g.length==1?'0'+g:g; b=b.length==1?'0'+b:b;
+            var colHex='#'+r+g+b;
+            return colHex;
+        }
+    }
+
+
+    // set current page
+
+    async setItemId(item){
+        this.setState({
+            currentItem: item
+        });
+    }
+
+
+    // menu buttons click handler
+
+    async clickHandler(item){
+
+        localStorage.setItem("item", item[0]);
+        await this.setItemId(item);
+        localStorage.setItem("oldTitle", item[1].title);
+
+        if(localStorage.getItem("item") === "Products"){
+            localStorage.setItem("product", "true");
+        }
+        else{
+            localStorage.setItem("product", "false");
+        }
+
+        //load image style from DB
+
+        let imgWidth, imgHeight, imgFloat;
+        await db.collection("pages")
+            .doc(item[0])
+            .collection("style")
+            .doc("image")
+            .get()
+            .then((doc) => {
+                imgWidth = doc.data().width;
+                imgHeight = doc.data().height;
+                imgFloat = doc.data().float;
+
+            }).catch((error) => {
+                console.log(error);
+            });
+
+        //load title style from DB
+
+        let color, fontSize, margin;
+        await db.collection("pages")
+            .doc(item[0])
+            .collection("style")
+            .doc("title")
+            .get()
+            .then((doc) => {
+                color = doc.data().color;
+                fontSize = doc.data().fontSize;
+                margin = doc.data().margin;
+
+            }).catch((error) => {
+                console.log(error);
+            });
+
+        //load content text style from DB
+
+        let textColor, textFontSize, textMargin;
+        await db.collection("pages")
+            .doc(item[0])
+            .collection("style")
+            .doc("text")
+            .get()
+            .then((doc) => {
+                textColor = doc.data().color;
+                textFontSize = doc.data().fontSize;
+                textMargin = doc.data().margin;
+
+            }).catch((error) => {
+                console.log(error);
+            });
+
+        //build pages
+
+        localStorage.setItem("item", item[0]);
+        ReactDOM.render(
+            <div className="App-page" id="Page">
+                <h1 id="Page-title" style={{
+                    color: color,
+                    fontSize: fontSize,
+                    margin: "5px",
+                    marginLeft: margin,
+                }}>{item[1].title}</h1>
+                <img
+                    src={item[1].image}
+                    id="img"
+                    alt=""
+
+                    style={{
+                        width: imgWidth,
+                        height: imgHeight,
+                        float: imgFloat
+                    }}
+                />
+                <p id="Page-text" style={{}}></p>
             </div>
-            <div className="App-body" id="Body"></div>
-        </div>
-    );
-  }
+            ,document.getElementById("Body"));
 
+        //update content admin panel
+
+        document.getElementById("Page-text").setAttribute("contenteditable", "false");
+        document.getElementById("Page-text").innerHTML = item[1].text;
+        document.getElementById("Page-text").style.fontSize = textFontSize+"px";
+        document.getElementById("Page-text").style.margin = textMargin+"%";
+        document.getElementById("Page-text").style.color = textColor;
+
+
+        // sorting menu - Home and products on front
+
+        var tab = this.state.items;
+        var sorted = [];
+        for(var i = 0; i < tab.length; i++){
+            if(tab[i][0] === "main") {
+                sorted.push(tab[i]);
+                tab[i] = null;
+                for (var j = 0; j < tab.length; j++) {
+                    if ((tab[j] != null) && (tab[j][0] === "Products")) {
+                        sorted.push(tab[j]);
+                        tab[j] = null;
+                        for(var k = 0; k < tab.length; k++)
+                            if(tab[k] != null)
+                                sorted.push(tab[k]);
+                        j=tab.length;
+                    }
+                }
+                i = tab.length;
+            }
+        }
+        this.setState({
+            items: sorted
+        });
+    }
+
+    // submenu buttons click handler
+
+    async productClickHandler(item){
+
+        // flags
+
+        localStorage.setItem("item", item[0]);
+        await this.setItemId(item);
+        localStorage.setItem("oldTitle", item[1].title);
+        localStorage.setItem("product", "true");
+
+        //image style
+
+        let imgWidth, imgHeight, imgFloat;
+        await db.collection("pages")
+            .doc("Products")
+            .collection("pages")
+            .doc(item[0])
+            .collection("style")
+            .doc("image")
+            .get()
+            .then((doc) => {
+                imgWidth = doc.data().width;
+                imgHeight = doc.data().height;
+                imgFloat = doc.data().float;
+            }).catch((error) => {
+                console.log(error);
+            });
+
+        //page title style
+
+        let color, fontSize, margin;
+        await db.collection("pages")
+            .doc("Products")
+            .collection("pages")
+            .doc(item[0])
+            .collection("style")
+            .doc("title")
+            .get()
+            .then((doc) => {
+                color = doc.data().color;
+                fontSize = doc.data().fontSize;
+                margin = doc.data().margin;
+            }).catch((error) => {
+                console.log(error);
+            });
+
+        // content text style
+
+        let textColor, textFontSize, textMargin;
+        await db.collection("pages")
+            .doc("Products")
+            .collection("pages")
+            .doc(item[0])
+            .collection("style")
+            .doc("text")
+            .get()
+            .then((doc) => {
+                textColor = doc.data().color;
+                textFontSize = doc.data().fontSize;
+                textMargin = doc.data().margin;
+            }).catch((error) => {
+                console.log(error);
+            });
+
+        //build product pages
+
+        ReactDOM.render(
+            <div className="App-page" id="Page">
+                <h1 id="Page-title" style={{
+                    color: color,
+                    fontSize: fontSize,
+                    margin: "5px",
+                    marginLeft: margin,
+                }}>{item[1].title}</h1>
+                <img
+                    src={item[1].image}
+                    id="img"
+                    alt=""
+
+                    style={{
+                        width: imgWidth,
+                        height: imgHeight,
+                        float: imgFloat
+                    }}
+                />
+                <p id="Page-text" style={{}}></p>
+            </div>
+            ,document.getElementById("Body"));
+
+        //update content admin panel
+
+        document.getElementById("Page-text").setAttribute("contenteditable", "false");
+        document.getElementById("Page-text").innerHTML = item[1].text;
+        document.getElementById("Page-text").style.fontSize = textFontSize+"px";
+        document.getElementById("Page-text").style.margin = textMargin+"%";
+        document.getElementById("Page-text").style.color = textColor;
+    }
+
+    render(){
+        return (
+            <div className="App" id="App">
+                <header className="App-header" id="App-header">
+                </header>
+                <div className="App-nav" id="navbar">
+                    {this.state.items.map(item => (             //main menu
+                        <div>
+                            <a className="App-nav-item" id={item[0]} onClick={ async () => {
+                                await this.clickHandler(item);
+
+                            }}>{item[1].title}</a>
+                        </div>
+                    ))}
+                </div>
+
+
+
+                <div className="App-nav" id="productNavbar" style={{visibility: "hidden"}}>
+                    {this.state.products.map(product => {                                           //product menu
+                        return (
+                            <ul>
+                                <li>
+                                    <a className="App-nav-item"
+                                       id={product[0]}
+                                       style={{width: "100%", display:"inline"}}
+                                       onClick={async () => {
+                                           await this.productClickHandler(product);
+                                       }}>{product[1].title}</a>
+                                </li>
+                            </ul>
+                        )
+                    })}
+                </div>
+                <div className="App-body" id="Body">
+                </div>
+            </div>
+        );
+    }
 }
 
 export default App;

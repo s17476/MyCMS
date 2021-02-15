@@ -1,18 +1,20 @@
-
-
-.App-logo {
-  height: 100px;
-  visibility: hidden;
-  margin: 10px;
+.App{
+  height: 100%;
+  width: 100%;
 }
-
-
 .App-header {
+
+  width: 100%;
+
+}
+.App-head {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: left;
   font-size: calc(10px + 2vmin);
+  width: 85%;
+
 }
 .App-text{
   margin-left: 5%;
@@ -20,23 +22,74 @@
 
 .App-nav {
   overflow: hidden;
-  background-color: #333;
+  background-color: #ddd;
   box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   margin: 0px;
   padding: 0px;
-  cursor: pointer;
+  width: 100%;
+  display: inline-block;
+  position: relative;
+}
+.App-body{
+  width: 100%;
+  display: inline-block;
+  position: relative;
 }
 .App-nav a {
   float: left;
   display: block;
-  color: #f2f2f2;
+  color: black;
+  font-weight: bold;
   text-align: center;
   padding: 14px 16px;
   text-decoration: none;
 }
 .App-nav-item:hover {
-  background-color: #ddd;
-  color: black;
+  background-color: #333;
+  color: white;
+  cursor: pointer;
 }
+.App-nav-item-h{
+  width: 85%;
+  z-index: 1;
+}
+.App-nav-item-h:hover {
+  background-color: #333;
+  color: white;
+  cursor: pointer;
+}
+#img{
+  margin: 10px;
+}
+.App-admin {
+  position: fixed;
+  background-color: #ffffff;
+  height: 100%;
+  width: 15%;
+  left: 86%;
+  top: 0px;
+  right: 0px;
+  padding: 0px;
+  overflow: scroll;
+}
+#productNavbar{
+  margin: 0;
+  padding: 0;
+  z-index: 1;
+  position: absolute;
+  left: -3%;
+  top: 31%;
+  width: 25%;
+  text-align: left;
 
-
+}
+ul{
+  list-style-type: none;
+  margin: 0px;
+  padding: 0px;
+  overflow: hidden;
+  text-align: left;
+}
+li {
+  float: bottom;
+}
